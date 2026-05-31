@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Control Cultural</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      font-size: 14px;
+      background: #fff;
+      color: #1a3c6e;
+      max-width: 480px;
+      margin: 0 auto;
+      padding-bottom: 80px;
+    }
+    .url-bar {
+      background: #FFF9C4;
+      border-bottom: 1px solid #e0c000;
+      padding: 5px 8px;
+      display: flex;
+      gap: 5px;
+    }
+    .url-bar input {
+      flex: 1; border: 1px solid #ddd; border-radius: 2px;
+      padding: 4px 5px; font-size: 11px; font-family: monospace; min-width: 0;
+    }
+    .url-bar button {
+      background: #555; color: white; border: none; border-radius: 2px;
+      padding: 4px 9px; font-size: 11px; cursor: pointer;
+    }
+    .nav {
+      display: flex; border-bottom: 1px solid #aaa;
+      background: #f8f8f8; position: sticky; top: 0; z-index: 10;
+    }
+    .nav-btn {
+      flex: 1; padding: 7px 4px; text-align: center;
+      font-size: 12px; color: #666; cursor: pointer;
+      border-bottom: 2px solid transparent;
+    }
+    .nav-btn.active { color: #000; border-bottom-color: #333; font-weight: bold; }
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* FORM */
+    .form-body { padding: 8px 12px; }
+    .row-title {
+      text-align: center; font-weight: bold; font-size: 15px;
+      padding: 10px 0 8px; color: #1a3c6e; letter-spacing: 1px;
+    }
+    .header-row {
+      display: flex; flex-wrap: wrap; gap: 4px 16px;
+      margin-bottom: 2px; line-height: 1.6; align-items: center;
+    }
+    .lbl { font-weight: bold; color: #1a3c6e; font-size: 13px; }
+    .val { color: #1a3c6e; font-size: 13px; }
+
+    /* inputs transparentes estilo documento */
+    .header-row input, .header-row select,
+    .trampa-header input, .trampa-header select,
+    .detail-row input, .fruta-row select, .fruta-row input,
+    .rast-row input {
+      border: none; border-bottom: 1px solid #b0c4de;
+      outline: none; font-size: 13px;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      color: #1a3c6e; background: transparent;
+      padding: 1px 2px; border-radius: 0; -webkit-appearance: none;
+    }
+    .header-row input:focus, .header-row select:focus,
+    .trampa-header select:focus, .detail-row input:focus,
+    .fruta-row select:focus, .fruta-row input:focus,
+    .rast-row input:focus {
+      border-bottom-color: #1a3c6e;
+    }
+    input::placeholder, select.placeholder { color: #8aa8d0; }
+    select { color: #8aa8d0; }
+    select.sel { color: #1a3c6e; }
+    input[type=date] { color: #1a3c6e; }
+
+    .section-gap { height: 14px; border-bottom: 1px dashed #dde3ed; margin-bottom: 10px; }
+
+    /* TRAMPA */
+    .trampa-section {
+      background: #f7faff; border: 1px solid #dde3ed;
+      border-radius: 6px; padding: 10px 12px; margin-bottom: 10px; position: relative;
+    }
+    .trampa-num-badge {
+      display: inline-block; background: #1a3c6e; color: #fff;
+      font-size: 10px; font-weight: bold; padding: 1px 8px;
+      border-radius: 20px; margin-bottom: 6px;
+    }
+    .trampa-header {
+      display: flex; gap: 8px; align-items: center;
+      margin-bottom: 4px; flex-wrap: wrap;
+    }
+    .detail-row {
+      display: flex; gap: 6px; align-items: center;
+      line-height: 1.5; margin-bottom: 3px;
+    }
+    .detail-row .lbl { font-weight: normal; min-width: 72px; }
+    .detail-row input { flex: 1; min-width: 0; }
+    .fruta-row {
+      display: flex; gap: 4px; align-items: center;
+      line-height: 1.5; margin-bottom: 3px;
+    }
+    .fruta-row .lbl { font-weight: normal; min-width: 72px; }
+    .fruta-row select { min-width: 90px; flex: 1; }
+    .fruta-row input[type=number] { width: 45px; }
+    .unit { color: #1a3c6e; font-size: 13px; }
+    .btn-del-fruta {
+      background: none; border: none; color: #c62828;
+      font-size: 18px; font-weight: bold; cursor: pointer;
+      padding: 0 5px; line-height: 1; opacity: 0.5;
+      touch-action: manipulation;
+    }
+    .btn-del-fruta:active { opacity: 1; }
+    .btn-add-wrap { display: flex; justify-content: flex-end; margin: 4px 0; }
+    .btn-add-fruta {
+      background: #e8f0fe; color: #1a3c6e;
+      border: 1px dashed #7baaf7; border-radius: 16px;
+      padding: 5px 14px; font-size: 12px; font-weight: bold;
+      cursor: pointer; touch-action: manipulation;
+    }
+    .rast-row {
+      display: flex; gap: 4px; align-items: center;
+      line-height: 1.5; margin-bottom: 3px;
+    }
+    .rast-row .lbl { font-weight: normal; min-width: 72px; }
+    .rast-row input { width: 50px; }
+    .btn-del-trampa {
+      position: absolute; top: 8px; right: 8px;
+      background: none; border: 1px solid #ccc; border-radius: 4px;
+      color: #999; font-size: 11px; cursor: pointer; padding: 2px 7px;
+    }
+    .btn-del-trampa:hover { border-color: #c62828; color: #c62828; }
+
+    /* ADD TRAMPA */
+    .btn-add-trampa-wrap { padding: 0 12px 8px; }
+    .btn-add-trampa {
+      width: 100%; background: #f0f4ff; color: #1a3c6e;
+      border: 1px dashed #7baaf7; border-radius: 6px;
+      padding: 8px; font-size: 13px; cursor: pointer;
+      font-family: 'Segoe UI', Arial, sans-serif;
+    }
+
+    /* SAVE */
+    .btn-wrap {
+      position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+      width: 100%; max-width: 480px; padding: 7px 10px;
+      background: white; border-top: 1px solid #ddd;
+      display: flex; gap: 8px;
+    }
+    .btn-save {
+      flex: 1; padding: 11px; background: #2E7D32; color: white;
+      border: none; font-size: 14px; font-weight: bold;
+      cursor: pointer; border-radius: 3px;
+    }
+    .btn-save:disabled { background: #999; }
+    .btn-wa {
+      background: #25d366; border: none; border-radius: 3px;
+      color: #fff; cursor: pointer; font-size: 20px; padding: 11px 14px;
+    }
+
+    /* RESUMEN */
+    .res-wrap { padding: 10px; }
+    .res-filter { display: flex; gap: 6px; margin-bottom: 12px; align-items: center; }
+    .res-filter input { border: 1px solid #ccc; border-radius: 3px; padding: 6px 8px; font-size: 14px; width: 80px; }
+    .res-filter button { background: #333; color: white; border: none; border-radius: 3px; padding: 7px 12px; font-size: 13px; cursor: pointer; }
+    .res-filter .btn-out { background: #f0f0f0; color: #333; border: 1px solid #ccc; }
+    .no-data { text-align: center; padding: 28px; color: #aaa; font-size: 13px; font-style: italic; }
+    .s-card { border: 1px solid #ccc; border-radius: 4px; margin-bottom: 10px; overflow: hidden; }
+    .s-head { background: #333; color: white; padding: 6px 10px; display: flex; justify-content: space-between; font-size: 13px; font-weight: bold; }
+    .s-tots { display: flex; border-bottom: 1px solid #eee; }
+    .s-tot { flex: 1; text-align: center; padding: 8px 4px; border-right: 1px solid #eee; }
+    .s-tot:last-child { border-right: none; }
+    .tv { font-size: 18px; font-weight: bold; color: #222; }
+    .tl { font-size: 10px; color: #888; text-transform: uppercase; }
+    .tu { font-size: 10px; color: #bbb; }
+    .s-fdet { padding: 8px 10px; }
+    .ftit { font-size: 10px; font-weight: bold; color: #555; text-transform: uppercase; margin-bottom: 5px; }
+    .fb { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+    .fn { font-size: 12px; width: 110px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 0; }
+    .bw { flex: 1; background: #eee; border-radius: 3px; height: 12px; overflow: hidden; }
+    .b { height: 100%; background: #555; border-radius: 3px; }
+    .fk { font-size: 11px; color: #888; width: 44px; text-align: right; flex-shrink: 0; }
+
+    /* TOAST */
+    .toast {
+      position: fixed; bottom: 72px; left: 50%; transform: translateX(-50%);
+      padding: 8px 16px; border-radius: 16px; font-size: 13px; font-weight: bold;
+      color: white; opacity: 0; transition: opacity 0.3s; z-index: 999;
+      white-space: nowrap; box-shadow: 0 2px 8px rgba(0,0,0,.25);
+    }
+    .toast.show { opacity: 1; }
+    .toast.ok { background: #2E7D32; }
+    .toast.error { background: #C62828; }
+</style>
+</head>
+<body>
+
+<div class="url-bar">
+  <input type="url" id="apiUrl" placeholder="URL del Web App (Apps Script)...">
+  <button onclick="saveUrl()">OK</button>
+</div>
+
+<div class="nav">
+  <div class="nav-btn active" onclick="showPage('form')">📋 Formulario</div>
+  <div class="nav-btn" onclick="showPage('res')">📊 Resumen</div>
+</div>
+
+<div id="page-form" class="page active">
+  <div id="capture-zone">
+    <div class="form-body">
+      <div class="row-title">CONTROL CULTURAL</div>
+
+      <div class="header-row">
+        <span class="lbl">CODIGO</span>
+        <span class="val">
+          <input type="text" id="codigo" placeholder="ej. 38567" style="width:90px;">
+        </span>
+        <span class="lbl">SUBSECTOR</span>
+        <span class="val">
+          <input type="text" id="subsector" placeholder="ej. Poroto" style="width:90px;">
+        </span>
+      </div>
+
+      <div class="header-row">
+        <span class="lbl">SEMANA</span>
+        <span class="val">
+          <input type="number" id="semana" min="1" max="52" style="width:45px;">
+        </span>
+        <span class="lbl">FECHA</span>
+        <span class="val">
+          <input type="date" id="fecha" style="width:130px;">
+        </span>
+      </div>
+
+      <div class="section-gap"></div>
+
+      <div id="trampas-container"></div>
+    </div>
+  </div>
+
+  <div class="btn-add-trampa-wrap">
+    <button class="btn-add-trampa" id="btnAddTrampa" onclick="agregarTrampa()">＋ Agregar Trampa</button>
+  </div>
+
+  <div class="btn-wrap">
+    <button class="btn-save" id="btnG" onclick="guardar()">▶ GUARDAR REGISTRO</button>
+    <button class="btn-wa" onclick="enviarWA()" title="Capturar y enviar por WhatsApp">📲</button>
+  </div>
+</div>
+
+<div id="page-res" class="page">
+  <div class="res-wrap">
+    <div class="res-filter">
+      <input type="number" id="sem-b" placeholder="Sem." min="1" max="52">
+      <button onclick="cargarRes()">🔍 Buscar</button>
+      <button class="btn-out" onclick="cargarRes(true)">Ver todas</button>
+    </div>
+    <div id="res-cont"><div class="no-data">Ingresa una semana o presiona "Ver todas"</div></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════
+// PRODUCTORES (solo los del PDF nuevo)
+// Formato: [codigo|tipo, codigo, tipo, nombre]
+// ══════════════════════════════════════════
+var PROD = (function(){
+  var raw = [
+    ["030101022","jt","AMANDA SANCHEZ PAREDES"],
+    ["030101022","jt","BEATRIZ MARTINA FERNANDEZ"],
+    ["030101022","jt","ELENA SANDOVAL REYES"],
+    ["030101022","jt","ROBERTO VILLANUEVA PEREZ"],
+    ["030101022","jt","PABLO CESAR GARCIA RUBIO"],
+    ["030101022","jt","GLORIA RUBIO TORIBIO"],
+    ["030101022","jt","SEGUNDO RAMIREZ VARELA"],
+    ["030101023","jt","VICENTE MUDARRA SENAS"],
+    ["030101023","jt","FERNANDO MARIÑOS RODRIGUEZ"],
+    ["030101023","jt","ELVA QUIROZ ARROYO"],
+    ["030101023","jt","ESPERANZA TAMAYO ORTIZ"],
+    ["030101023","jt","JORGE LUIS DE LA CUZ AVALOS"],
+    ["030101023","jt","AV. PEDRO GARCIA Y PASAJES"],
+    ["030101023","jt","ELMER ANTICONA BAILON"],
+    ["030101023","jt","PEDRO GARCIA ANDRADE"],
+    ["030101023","jt","PEDRO RODRIGUEZ TORIBIO"],
+    ["030101023","jt","AURORA SANDOVAL REYES"],
+    ["030101023","jt","PAUL RAMIREZ CASTILLO"],
+    ["030101023","jt","ALEJANDRO SANDOVAL REYES"],
+    ["030101023","jt","LEONCIO GARCIA RODRIGUEZ"],
+    ["030101023","jt","ASUNCION SANCHEZ ALVAREZ"],
+    ["030101023","jt","SANTOS VELASQUEZ RODRIGUEZ"],
+    ["030101023","jt","GENOVEVA SANCHEZ ALVAREZ"],
+    ["030101023","jt","ALEX CASTRO QUIROZ"],
+    ["030101023","jt","MANUEL ALBERTO GONZALES CASTRO"],
+    ["030101018","ml","JUAN VALENCIA RODRIGUEZ"],
+    ["030101018","ml","LEOPOLDO AVALOS GARCES"],
+    ["030101018","ml","MILTON CAMPOS MARTINES"],
+    ["030101020","ml","LUZ ANGELICA GONZALES CASTRO"],
+    ["030101020","ml","ANTONIO GONZALES CASTRO"],
+    ["030101020","ml","NANCY LLERENA SALDAÑA"],
+    ["030101020","ml","JOEL CISNEROS GONZALES"],
+    ["030101024","ml","TEODULIO SANTOS CRUZ"],
+    ["030101024","ml","AMERICO REYES CRUZ"],
+    ["030101024","ml","FRANCISCO REYES PINEDO"],
+    ["030101024","ml","EMILIANO ZAVALETA CRUZ"],
+    ["030101024","ml","SUSANA BARRIOS CHAMARRO"],
+    ["030101024","ml","LEONCIO MELGAREJO GOMEZ"],
+    ["030101024","ml","EMILIANO GONZALES GAMBOA"],
+    ["030101024","ml","SANTOS PINEDO AVILA"],
+    ["030101024","ml","FILEMON ARTEAGA FLORES"],
+    ["030101024","ml","SARA VERDE VILLACORTA"],
+    ["030101031","jt","MARCOS FERMIN FLORES"],
+    ["030101031","jt","DEMETRIO SAMORA POLO"],
+    ["030101031","jt","JOSE MORENO QUISPE"],
+    ["030101031","jt","VIVERO CAMPIÑA LA MERCED SR. VIGO"],
+    ["030101031","jt","DIONICIO MORENO POLO"],
+    ["030101031","jt","ELIO RAFFO CASTILLO"],
+    ["030101031","jt","ALBERTO RODRIGUEZ AMOROS"],
+    ["030101025","jt","ANTONIO ROJAS VASQUEZ"],
+    ["030101025","jt","GUILLERMO ZAVALETA BURGOS"],
+    ["030101025","jt","SEGUNDO ARANA MUÑOZ"],
+    ["030101025","jt","SEGUNDO RODRIGUEZ VENTURA"],
+    ["030101025","jt","PORFIRIO PELAEZ CERNA"],
+    ["030101025","jt","LUZ AURORA DIAZ TALLEDO"],
+    ["030101019","jt","ELENA ROMERO CHIMBOR"],
+    ["030101019","jt","AGUSTIN MINBELA CORNELIO"],
+    ["030101019","jt","HENRY SANDOVAL MENDOZA"],
+    ["030101019","jt","DEANILA BAZAN DE ALVA"],
+    ["030101019","jt","GERALDINA OTINIANO DE BURGA"],
+    ["030101019","jt","JUAN HUAMAN RAMIREZ"],
+    ["030101019","jt","MARCO ANTONIO ALVARADO BRONCALES"],
+    ["030101019","jt","LUZ ELENA GONZALES TORRES (F. ALEJANDRIA)"],
+    ["030101019","jt","TEODONILA ORTIZ TAMAYO"],
+    ["030101019","jt","NICOLAS ORTIZ TAMAYO"],
+    ["030101019","jt","ESTHER RODRIGUEZ DE ECHEVARRIA"],
+    ["030101019","jt","RAFAEL PELAEZ AVILA"],
+    ["030101019","jt","TEOFILIA GUEVARA DE CRUZ"],
+    ["030101019","jt","LIDIA PORTALES MATA (GRAN CHAPARRAL)"],
+    ["030101019","jt","LUIS FERNANDO ALVARADO BRONCALES"],
+    ["030101019","jt","JOSE SANDOVAL SOLAR"],
+    ["030101019","jt","CELSO AVILA SIFUENTES"],
+    ["030101019","jt","SMITH CORTIJO SANDOVAL"],
+    ["030101019","jt","ULISES ALVARADO CERNA"],
+    ["030101019","jt","FILOMENO VALENCIA RODRIGUEZ"],
+    ["030101018","jt","SEGUNDO CARBONEL BOMBI"],
+    ["030101018","jt","MAXIMO RODRIGUEZ SIFUENTES"],
+    ["030101018","jt","SANTOS MAXIMO HORNA AVALOS"],
+    ["030101018","jt","SILVERIO PAREDES AVALOS"],
+    ["030101018","jt","ESTANISLAO GARCIA BRICEÑO"],
+    ["030101018","jt","ANTERO AVILA GONZALES"],
+    ["030101018","jt","ELODIA GUTIERREZ FERNANDEZ"],
+    ["030101023","ml","ENEMESIO SANDOVAL BENITES"],
+    ["030101023","ml","CRISTINA ROSALES BERMUDES"],
+    ["030101023","ml","ENMA ROJAS DE RODRIGUEZ"],
+    ["030101023","ml","MACARIO ZAVALETA MALDONADO"],
+    ["030101023","ml","EDIS VENTURA ABANTO"],
+    ["030101023","ml","MZ 18 -2DA ETAPA SECTOR VICTOR RAUL"],
+    ["030101023","ml","PEDRO RAMIREZ QUIROZ"],
+    ["030101021","jt","ANA MARIA CASTRO GONZALES"],
+    ["030101021","jt","PASCUALA CORREA VIUDA DE PAREDES"],
+    ["030101021","jt","JOSE SANCHEZ MENDOZA"],
+    ["030101021","jt","PEDRO SANCHEZ RODRIGUEZ"],
+    ["030101021","jt","ALEJANDRO LUIS AVILA"],
+    ["030101021","jt","JULIO PORTUGAL FABRES"],
+    ["030101021","jt","ALVARO CRISOLOGO CALDERON"],
+    ["030101021","jt","RAUL GONZALES CASTRO"],
+    ["030101021","jt","JHON CUMPA CASTRO"],
+    ["030101021","jt","ALICIA DE LA CRUZ GARCIA"],
+    ["030101027","jt","WALTER DE LA CRUZ GARCIA"],
+    ["030101027","jt","MARLENI DE LA CRUZ GARCIA"],
+    ["030101027","jt","JORGE DE LA CRUZ GARCIA"],
+    ["030101027","jt","CESAR RAUL GONZALES LEIVA"],
+    ["030101027","jt","FAUSTO OLORTEGUI LAZARO"],
+    ["030101025","ml","JUAN RODRIGUEZ ZAVALETA"],
+    ["030101025","ml","ROSA AVALOS AVALOS"],
+    ["030101025","ml","WILSON SALIRROSAS RODRIGUEZ"],
+    ["030101025","ml","ELIAS ECHEVARRIA ECHEVARRIA"],
+    ["030101025","ml","FRANCISCO GUARNIZ MEDINA"],
+    ["030101024","jt","MARIA MAURICIO ALVARADO"],
+    ["030101024","jt","JUAN PUELLES RODRIGUEZ"],
+    ["030101024","jt","JUAN PUELLES RODRIGUEZ (CASA H.)"],
+    ["030101024","jt","MARINA MACARIO SEGURA AVALOS"],
+    ["030101024","jt","GERARDO BENITES ROMERO"],
+    ["030101024","jt","GLADIS ALAYO RODRIGUEZ"],
+    ["030101030","jt","FELIPE CAMPOS MAGAN"],
+    ["030101030","jt","ANGEL CASTRO MAGAN"],
+    ["030101030","jt","ROSA CASTRO MAGAN"],
+    ["030101030","jt","ISIDRO GUZMAN PAREDES"],
+    ["030101030","jt","JULIA CARRAN ESCOBEDO"],
+    ["030101027","ml","CLAUDIO ALVARADO RAMOS"],
+    ["030101027","ml","MARIA VERONICA RODRIGUEZ"],
+    ["030101027","ml","LUZMILA CARRAN ESCOBEDO"],
+    ["030101027","ml","ANGHELA CARRAN ESCOBEDO"],
+    ["030101027","ml","ANGEL RODRIGUEZ GARCIA"],
+    ["030101026","ml","MARIA VEGA SAAVEDRA"],
+    ["030101026","ml","CONSUELO AVALOS ABANDO"],
+    ["030101026","ml","JOSE GARCIA BELLO"],
+    ["030101026","ml","CARLOS LAZARO RODRIGUEZ"],
+    ["030101021","ml","BASTI ROMERO ZAVALETA"],
+    ["030101021","ml","ALFONSINA HUALCAS QUISPE"],
+    ["030101021","ml","EVA MARIA ALVARADO"],
+    ["030101021","ml","ANTERO IBAÑEZ MINCHOLA"],
+    ["030101021","ml","ROSMARY RODRIGUEZ AGUILAR"],
+    ["030101021","ml","SANTOS ALFARO VILLACORTA"],
+    ["030101021","ml","FELIX DIAZCBREJOS"],
+    ["030101021","ml","ROSA COLLANTES MENDOZA"],
+    ["030101021","ml","RAQUEL COLLANTES NATIVIDAD"],
+    ["030101021","ml","GISELA GIOVANI GALARRETA"],
+    ["030101021","ml","EMILIANO ZAVALETA CRUZ"],
+    ["030101021","ml","JAIME LAZARO RODRIGUEZ"],
+    ["030101021","ml","LUIS ROSARIO ZAVALETA"],
+    ["030101020","jt","GENARO GAMBOA AGUILAR"],
+    ["030101020","jt","HIPOLITO ZAVALETA LAZARO"],
+    ["030101020","jt","NERY GAMBOA AGUILAR"],
+    ["030101020","jt","GILMER GAMBOA AGUILAR"],
+    ["030101020","jt","BETY GIL BENITES"],
+    ["030101028","jt","JULIAN ROJAS GIL"],
+    ["030101028","jt","PEDRO SICCHA MENDEZ"],
+    ["030101028","jt","DAVID ROJAS GIL"],
+    ["030101028","jt","NELI ROJAS RODRIGUEZ"],
+    ["030101028","jt","CONSUELO MENDEZ CASPITA"],
+    ["030101028","jt","VALENTINA RAMOS BLAS"],
+    ["030101022","ml","LUCIANO LLANOS LAZARO"],
+    ["030101022","ml","BENITA ACOSTA CASTRO"],
+    ["030101022","ml","SABINA UDELIA AGREDA CASTILLO"],
+    ["030101022","ml","LUIS RODRIGUEZ PEÑA"],
+    ["030101022","ml","GILSON RODRIGUEZ LOYOLA"],
+    ["030101022","ml","JHON GARCIA JUAREZ"],
+    ["030101022","ml","JOSE ARMAS VASQUEZ"],
+    ["030101022","ml","AV. REBOLUCIONY PASAJES M.D."],
+    ["030101022","ml","TOMY RODRIGUEZ GARCIA"],
+    ["030101019","ml","BENITA YOLANDA CERNA CASTRO"],
+    ["030101019","ml","MARIA ESTHER ROJAS RIOS"],
+    ["030101019","ml","FREDESMINDA CERNA ALVARADO"],
+    ["030101019","ml","HILARIO ROSAS HUAYLLA"],
+    ["030101019","ml","RAQUEL GUTIERREZ ARENA"],
+    ["030101019","ml","VALENTIN RAMOS BLAS"],
+    ["030101019","ml","PAULO COSTA CHAVEZ"],
+    ["030101019","ml","VIOLETA RODRIGUEZ GRAU"],
+    ["030101019","ml","BELU LOPEZ MARQUINA"]
+  ];
+  return raw.map(function(r){ return [r[0]+"|"+r[1], r[0], r[1], r[2]]; });
+})();
+
+var FRUTAS = [
+  "Aguaymanto","Carambola","Capulí","Chirimoya","Ciruela","Ciruela Canzaboca",
+  "Durazno","Granada","Guanábana","Guayaba","Higo","Lima","Limón","Lúcuma",
+  "Mandarina","Mango","Manzana","Maracuyá","Melocotón","Membrillo","Naranja",
+  "Níspero","Pacae","Palta","Papaya","Pepino dulce","Plátano","Tamarindo",
+  "Tuna","Tumbo"
+];
+
+var trampaCount = 0;
+var frutasVisibles = {};
+
+// ── INIT ──
+window.onload = function(){
+  document.getElementById('fecha').valueAsDate = new Date();
+  document.getElementById('semana').value = getSemanaActual();
+  var url = localStorage.getItem('apiUrl');
+  if (url) document.getElementById('apiUrl').value = url;
+  agregarTrampa();
+};
+
+function getSemanaActual(){
+  var now = new Date();
+  var start = new Date(now.getFullYear(), 0, 1);
+  var diff = now - start + (start.getTimezoneOffset() - now.getTimezoneOffset()) * 60000;
+  return Math.ceil(diff / 604800000);
+}
+
+// ── TRAMPAS ──
+function agregarTrampa(){
+  if (trampaCount >= 5){ toast('⚠️ Máximo 5 trampas','error'); return; }
+  trampaCount++;
+  var n = trampaCount;
+  frutasVisibles[n] = 0;
+
+  var codes = [];
+  PROD.forEach(function(p){ if(codes.indexOf(p[1])<0) codes.push(p[1]); });
+  codes.sort();
+
+  var optsCode = '<option value="" disabled selected hidden>código</option>';
+  codes.forEach(function(c){ optsCode += '<option value="'+c+'">'+c+'</option>'; });
+
+  var div = document.createElement('div');
+  div.className = 'trampa-section';
+  div.id = 'trampa-sec-'+n;
+  div.innerHTML =
+    '<span class="trampa-num-badge">Trampa '+n+'</span>'+
+    (n>1 ? '<button class="btn-del-trampa" onclick="eliminarTrampa('+n+')">✕ quitar</button>' : '')+
+    '<div class="trampa-header">'+
+      '<span class="lbl">Código</span>'+
+      '<select id="tcode'+n+'" onchange="buscarP('+n+')">'+optsCode+'</select>'+
+      '<select id="tipo'+n+'" onchange="buscarP('+n+')">'+
+        '<option value="" disabled selected hidden>tipo</option>'+
+        '<option value="ml">ml</option>'+
+        '<option value="jt">jt</option>'+
+      '</select>'+
+    '</div>'+
+    '<div class="detail-row">'+
+      '<span class="lbl">productor</span>'+
+      '<input type="text" id="prod'+n+'" readonly placeholder="automático...">'+
+    '</div>'+
+    '<div id="frutas'+n+'-wrap"></div>'+
+    '<div class="btn-add-wrap" id="btnAddWrap'+n+'">'+
+      '<button type="button" class="btn-add-fruta" onclick="agregarFruta('+n+')">+ fruta</button>'+
+    '</div>'+
+    '<div class="rast-row">'+
+      '<span class="lbl">rastrilleo</span>'+
+      '<input type="number" id="rast'+n+'" placeholder="0" min="0" max="99999">'+
+      '<span class="unit">m²</span>'+
+    '</div>'+
+    '<div class="rast-row">'+
+      '<span class="lbl">hoyos</span>'+
+      '<input type="number" id="hoy'+n+'" placeholder="0" min="0" max="9999">'+
+    '</div>';
+
+  document.getElementById('trampas-container').appendChild(div);
+  mkFrutas('frutas'+n+'-wrap', n);
+  if (trampaCount >= 5) document.getElementById('btnAddTrampa').style.display='none';
+}
+
+function eliminarTrampa(n){
+  var el = document.getElementById('trampa-sec-'+n);
+  if (el) el.remove();
+  delete frutasVisibles[n];
+  trampaCount--;
+  if (trampaCount < 5) document.getElementById('btnAddTrampa').style.display='';
+  // re-numerar badges
+  var secs = document.querySelectorAll('.trampa-section');
+  secs.forEach(function(s,i){
+    var badge = s.querySelector('.trampa-num-badge');
+    if (badge) badge.textContent = 'Trampa '+(i+1);
+  });
+}
+
+function mkFrutas(wid, t){
+  var w = document.getElementById(wid);
+  var optsFrutas = '<option value="" disabled selected hidden>—</option>';
+  FRUTAS.forEach(function(f){ optsFrutas += '<option value="'+f+'">'+f+'</option>'; });
+  for (var i=1; i<=5; i++){
+    var d = document.createElement('div');
+    d.className='fruta-row'; d.id='frow'+i+'_'+t; d.style.display='none';
+    var s = document.createElement('select'); s.id='f'+i+'_'+t; s.innerHTML=optsFrutas;
+    s.addEventListener('change', function(){ this.classList.add('sel'); });
+    var inp = document.createElement('input');
+    inp.type='number'; inp.id='k'+i+'_'+t; inp.placeholder='0'; inp.min='0'; inp.max='9999'; inp.step='0.1';
+    var u = document.createElement('span'); u.className='unit'; u.textContent='kg';
+    var x = document.createElement('button'); x.type='button'; x.className='btn-del-fruta'; x.textContent='×';
+    (function(idx,trp){ x.addEventListener('click',function(){ quitarFruta(idx,trp); }); })(i,t);
+    d.appendChild(s); d.appendChild(inp); d.appendChild(u); d.appendChild(x);
+    w.appendChild(d);
+  }
+}
+
+function agregarFruta(t){
+  if (frutasVisibles[t]===undefined) return;
+  if (frutasVisibles[t]>=5) return;
+  frutasVisibles[t]++;
+  var row = document.getElementById('frow'+frutasVisibles[t]+'_'+t);
+  if (row) row.style.display='';
+  if (frutasVisibles[t]>=5) document.getElementById('btnAddWrap'+t).style.display='none';
+}
+
+function quitarFruta(idx,t){
+  for (var j=idx; j<5; j++){
+    var fa=document.getElementById('f'+(j+1)+'_'+t), fb=document.getElementById('f'+j+'_'+t);
+    var ka=document.getElementById('k'+(j+1)+'_'+t), kb=document.getElementById('k'+j+'_'+t);
+    if(fa&&fb){ fb.value=fa.value; if(fa.value) fb.classList.add('sel'); else fb.classList.remove('sel'); fa.value=''; fa.classList.remove('sel'); }
+    if(ka&&kb){ kb.value=ka.value; ka.value=''; }
+  }
+  if(frutasVisibles[t]>0){
+    var lr=document.getElementById('frow'+frutasVisibles[t]+'_'+t);
+    if(lr) lr.style.display='none';
+    frutasVisibles[t]--;
+  }
+  document.getElementById('btnAddWrap'+t).style.display='';
+}
+
+function buscarP(n){
+  var tr=document.getElementById('tcode'+n).value;
+  var ti=document.getElementById('tipo'+n).value.toLowerCase();
+  var el=document.getElementById('prod'+n);
+  if(!tr||!ti){ el.value=''; return; }
+  var key=tr+'|'+ti;
+  var match=null;
+  for(var i=0;i<PROD.length;i++){ if(PROD[i][0]===key){ match=PROD[i]; break; } }
+  el.value = match ? match[3] : 'No encontrado';
+  document.getElementById('tcode'+n).classList.add('sel');
+}
+
+// ── GUARDAR ──
+function guardar(){
+  var api=localStorage.getItem('apiUrl')||'';
+  if(!api){ toast('⚠️ Configura la URL arriba','error'); return; }
+  var codigo=g('codigo').trim(), subsector=g('subsector').trim();
+  var semana=g('semana').trim(), fecha=g('fecha').trim();
+  if(!codigo){ toast('⚠️ Ingresa el CÓDIGO','error'); return; }
+  if(!semana){ toast('⚠️ Ingresa la SEMANA','error'); return; }
+  if(!fecha){ toast('⚠️ Selecciona la FECHA','error'); return; }
+
+  var secs=document.querySelectorAll('.trampa-section');
+  if(!secs.length){ toast('⚠️ Agrega al menos una trampa','error'); return; }
+
+  var trampasData=[], valido=true;
+  secs.forEach(function(sec,idx){
+    var tcodeEl=sec.querySelector('[id^=tcode]');
+    var tipoEl=sec.querySelector('[id^=tipo]');
+    if(!tcodeEl||!tipoEl) return;
+    var tn=tcodeEl.id.replace('tcode','');
+    var tcode=tcodeEl.value, tipo=tipoEl.value;
+    if(!tcode||!tipo){ toast('⚠️ Trampa '+(idx+1)+': selecciona código y tipo','error'); valido=false; return; }
+    var prod=g('prod'+tn);
+    var frutas=[];
+    for(var i=1;i<=5;i++){
+      var fn=g('f'+i+'_'+tn), fk=gn('k'+i+'_'+tn);
+      if(fn) frutas.push({nombre:fn, kg:fk||0});
+    }
+    trampasData.push({ numero:idx+1, codigo:tcode, tipo:tipo, productor:prod,
+      frutas:frutas, rastrilleo:gn('rast'+tn)||0, hoyos:gn('hoy'+tn)||0 });
+  });
+  if(!valido) return;
+
+  var btn=document.getElementById('btnG');
+  btn.disabled=true; btn.textContent='⏳ Guardando...';
+  var d={ codigo:codigo, subsector:subsector, semana:semana, fecha:fecha, trampas:trampasData };
+  fetch(api,{ method:'POST', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(d) })
+    .then(function(r){ return r.json(); })
+    .then(function(r){
+      if(r.ok){ toast('✅ Guardado en fila '+r.fila,'ok'); limpiar(); }
+      else { toast('❌ '+(r.error||'Error'),'error'); }
+    })
+    .catch(function(){ toast('❌ Sin conexión','error'); })
+    .finally(function(){ btn.disabled=false; btn.textContent='▶ GUARDAR REGISTRO'; });
+}
+
+// ── WHATSAPP ──
+function enviarWA(){
+  var zona=document.getElementById('capture-zone');
+  var btns=zona.querySelectorAll('button');
+  btns.forEach(function(b){ b.style.visibility='hidden'; });
+  html2canvas(zona,{ backgroundColor:'#ffffff', scale:2, useCORS:true, logging:false })
+    .then(function(canvas){
+      btns.forEach(function(b){ b.style.visibility=''; });
+      canvas.toBlob(function(blob){
+        var url=URL.createObjectURL(blob);
+        var a=document.createElement('a'); a.href=url;
+        a.download='control_cultural_'+new Date().toISOString().slice(0,10)+'.png';
+        a.click(); URL.revokeObjectURL(url);
+        var txt='📋 *CONTROL CULTURAL*\n📅 Semana: '+g('semana')+' | Fecha: '+g('fecha')+'\n🔑 Código: '+g('codigo')+'\n_(Adjunta la imagen descargada)_';
+        setTimeout(function(){ window.open('https://wa.me/?text='+encodeURIComponent(txt),'_blank'); },800);
+        toast('📷 Imagen descargada. Adjúntala en WhatsApp.','ok');
+      },'image/png');
+    })
+    .catch(function(){
+      btns.forEach(function(b){ b.style.visibility=''; });
+      toast('❌ Error al capturar','error');
+    });
+}
+
+// ── LIMPIAR ──
+function limpiar(){
+  document.getElementById('codigo').value='';
+  document.getElementById('subsector').value='';
+  document.getElementById('semana').value=getSemanaActual();
+  document.getElementById('fecha').valueAsDate=new Date();
+  document.getElementById('trampas-container').innerHTML='';
+  trampaCount=0; frutasVisibles={};
+  agregarTrampa();
+}
+
+// ── RESUMEN ──
+function cargarRes(todas){
+  var api=localStorage.getItem('apiUrl')||'';
+  if(!api){ toast('⚠️ Configura la URL','error'); return; }
+  var sem=todas?'':document.getElementById('sem-b').value.trim();
+  var url=api+'?action=resumen'+(sem?'&semana='+sem:'');
+  document.getElementById('res-cont').innerHTML='<div class="no-data">⏳ Cargando...</div>';
+  fetch(url)
+    .then(function(r){ return r.json(); })
+    .then(function(r){
+      if(!r.ok){ document.getElementById('res-cont').innerHTML='<div class="no-data">❌ '+(r.error||'Error')+'</div>'; return; }
+      if(!r.semanas||!r.semanas.length){ document.getElementById('res-cont').innerHTML='<div class="no-data">Sin registros</div>'; return; }
+      var html='';
+      r.semanas.forEach(function(s){
+        var mx=s.frutas.length?s.frutas[0].kg:1;
+        html+='<div class="s-card">';
+        html+='<div class="s-head"><span>Semana '+s.semana+'</span><span>'+s.registros+' reg.</span></div>';
+        html+='<div class="s-tots">';
+        html+='<div class="s-tot"><div class="tl">KG Frutas</div><div class="tv">'+s.totalKg+'</div><div class="tu">kg</div></div>';
+        html+='<div class="s-tot"><div class="tl">Rastrilleo</div><div class="tv">'+s.totalRastrilleo+'</div><div class="tu">m²</div></div>';
+        html+='<div class="s-tot"><div class="tl">Hoyos</div><div class="tv">'+s.totalHoyos+'</div><div class="tu">und</div></div>';
+        html+='</div>';
+        if(s.frutas&&s.frutas.length){
+          html+='<div class="s-fdet"><div class="ftit">Detalle frutas</div>';
+          s.frutas.forEach(function(f){
+            var p=mx>0?Math.round(f.kg/mx*100):0;
+            html+='<div class="fb"><span class="fn">'+f.nombre+'</span><div class="bw"><div class="b" style="width:'+p+'%"></div></div><span class="fk">'+f.kg+' kg</span></div>';
+          });
+          html+='</div>';
+        }
+        html+='</div>';
+      });
+      document.getElementById('res-cont').innerHTML=html;
+    })
+    .catch(function(){ document.getElementById('res-cont').innerHTML='<div class="no-data">❌ Sin conexión</div>'; });
+}
+
+// ── UTILS ──
+function saveUrl(){ var u=document.getElementById('apiUrl').value.trim(); if(u){ localStorage.setItem('apiUrl',u); toast('✅ URL guardada','ok'); } else { toast('⚠️ Ingresa una URL','error'); } }
+function showPage(p){ ['form','res'].forEach(function(n,i){ document.getElementById('page-'+n).classList.toggle('active',n===p); document.querySelectorAll('.nav-btn')[i].classList.toggle('active',n===p); }); }
+function g(id){ var e=document.getElementById(id); return e?e.value:''; }
+function gn(id){ var v=parseFloat(g(id)); return isNaN(v)?'':v; }
+function toast(msg,type){ var t=document.getElementById('toast'); t.textContent=msg; t.className='toast '+type+' show'; setTimeout(function(){ t.className='toast '+type; },3000); }
+</script>
+</body>
+</html>
